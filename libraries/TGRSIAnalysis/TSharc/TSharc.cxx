@@ -120,37 +120,38 @@ void TSharc::BuildHits() {
   //static int total;
   //printf("\t%i:  front = %i; back = %i\n",total++,fFrontFragments.size(),fBackFragments.size()); fflush(stdout);
 
-  for(front=fFrontFragments.begin();front!=fFrontFragments.end();) {
-    bool front_used = false;
-    bool back_used  = false;
+  if(fFrontFragments.size()>10 || fBackFragments.size()>10)
+     return;
+
+  std::vector<TFragment>::iterator best_front=fFrontFragments.end();
+  std::vector<TFragment>::iterator best_back =fBackFragments.end();
+  int  chg   = 0x0fffffff;
+  for(front=fFrontFragments.begin();front!=fFrontFragments.end();front++) {
     for(back=fBackFragments.begin();back!=fBackFragments.end();back++) {
       if(front->GetDetector()==back->GetDetector()) {
-        //if((TMath::Abs(front->GetCharge() - back->GetCharge()) <  6000) ){ // || 
-	   //(front->GetDetector()==5 && (front->GetSegment()%2)!=0))  { 
-           //time gate ?
-           front_used = true;
-           back_used  = true;
-           break;
-        //}
+         //printf("%s\t%s : %i - %i = %i\n",front->GetName(),back->GetName(),front->GetCharge(),back->GetCharge(),TMath::Abs(front->GetCharge() - back->GetCharge()));
+         if((TMath::Abs(front->GetCharge() - back->GetCharge()) <  chg) ){ // || 
+           chg = TMath::Abs(front->GetCharge() - back->GetCharge());
+           best_front=front;
+           best_back=back;
+        }
       }
     }
-    if(front_used && back_used) {
-      TSharcHit hit;
-      hit.SetFront(*front);
-      hit.SetBack(*back);
-      fSharcHits.push_back(hit);//TODO: consider using std::move here
-      front = fFrontFragments.erase(front);
-      back  = fBackFragments.erase(back);
-    } else {
-      front++;
-    }
+  }
+  if(best_front!=fFrontFragments.end() && best_back!=fBackFragments.end()) {
+    TSharcHit hit;
+    hit.SetFront(*best_front);
+    hit.SetBack(*best_back);
+    fSharcHits.push_back(hit);//TODO: consider using std::move here
+  } else {
+     return;
   }
   
   for(size_t i=0;i<fSharcHits.size();i++) {
     for(pad=fPadFragments.begin();pad!=fPadFragments.end();pad++) {
       if(fSharcHits.at(i).GetDetector() == pad->GetDetector()) {
         fSharcHits.at(i).SetPad(*pad);
-        pad = fPadFragments.erase(pad);
+        //pad = fPadFragments.erase(pad);
         break;
       }
     }

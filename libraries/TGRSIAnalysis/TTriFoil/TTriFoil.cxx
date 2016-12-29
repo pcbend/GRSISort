@@ -69,8 +69,14 @@ void TTriFoil::AddFragment(std::shared_ptr<const TFragment> frag, TChannel* chan
 		imax = 0;
 	}		
   }
-
 }
+
+void TTriFoil::BuildHits() {
+  // the data is actually built when the fragment is added. 
+  // this is here for compatability only.   pcb.
+}
+
+
 
 void TTriFoil::Print(Option_t *opt) const { } 
 

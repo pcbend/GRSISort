@@ -25,7 +25,7 @@ TEventBuildingLoop::TEventBuildingLoop(std::string name, EBuildMode mode)
 	fInputQueue(std::make_shared<ThreadsafeQueue<std::shared_ptr<const TFragment> > >()),
 	fOutputQueue(std::make_shared<ThreadsafeQueue<std::vector<std::shared_ptr<const TFragment> > > >()),
 	fOutOfOrderQueue(std::make_shared<ThreadsafeQueue<std::shared_ptr<const TFragment> > >()),
-	fBuildMode(mode), fSortingDepth(10000),
+	fBuildMode(mode), fSortingDepth(00000),
 	fBuildWindow(200), fPreviousSortingDepthError(false) {
 
 	switch(fBuildMode) {

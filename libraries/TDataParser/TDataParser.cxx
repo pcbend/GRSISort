@@ -147,6 +147,11 @@ int TDataParser::TigressDataToFragment(uint32_t* data,int size,unsigned int mida
         break;
       }
    }
+   if(NumFragsFound==0) {
+      printf(RED "done unpacking with no fragments found??" RESET_COLOR "\n");
+
+
+   }
    return NumFragsFound;
 }
 

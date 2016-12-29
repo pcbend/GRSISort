@@ -138,7 +138,9 @@ void TCalibrator::Clear(Option_t *opt) {
   //all_fits.clear();
   
   for(int i=0;i<4;i++) eff_par[i]=0.;
-  
+ 
+  fPeaks.clear();
+
   total_points=0;
 }
 
@@ -153,11 +155,11 @@ void TCalibrator::Draw(Option_t *opt) {
   fit_graph.Draw("AP");
 }
 
-void TCalibrator::Fit(int order) {
+void TCalibrator::Fit(int order,bool zerozero) {
   
   //if((graph_of_everything.GetN()<1) &&
   //    (all_fits.size()>0))
-  MakeCalibrationGraph();
+  MakeCalibrationGraph(zerozero);
   if(fit_graph.GetN()<1)
     return;
   if(order==1) {
@@ -176,6 +178,7 @@ void TCalibrator::Fit(int order) {
     linfit->SetParName(2,"C");
   }
   fit_graph.Fit(linfit);
+  fit_graph.Print();
   Print();
   
 }
@@ -193,11 +196,15 @@ double TCalibrator::GetEffParameter(int i) const {
 }
 
 
-TGraph &TCalibrator::MakeCalibrationGraph(double min_fom) {
+TGraph &TCalibrator::MakeCalibrationGraph(bool zerozero) { //double min_fom) {
   std::vector<double> xvalues;
   std::vector<double> yvalues;
   //std::vector<double> xerrors;
   //std::vector<double> yerrors;
+  if(zerozero) {
+    xvalues.push_back(0.0);
+    yvalues.push_back(0.0);
+  }
 
   for(auto it:fPeaks) {
     xvalues.push_back(it.centroid);
@@ -248,27 +255,43 @@ int TCalibrator::AddData(TH1 *data,TNucleus *source, double sigma,double thresho
 
   TSpectrum spectrum;
   spectrum.Search(data,sigma,"",threshold);
-  std::vector<double> data_channels;
-  std::map<double,double> peak_area;; 
+  //std::vector<double> data_channels;
+  std::vector<double> peak_positions;
+  //std::map<double,double> peak_area;; 
   //std::vector<double> data;
   for(int x=0;x<spectrum.GetNPeaks();x++) {
-    double range = 8*data->GetXaxis()->GetBinWidth(1);
+    //double range = 8*data->GetXaxis()->GetBinWidth(1);
     //printf(DGREEN "\tlow %.02f \t high %.02f" RESET_COLOR "\n",spectrum.GetPositionX()[x]-range,spectrum.GetPositionX()[x]+range);
-    GPeak *fit = PhotoPeakFit(data,spectrum.GetPositionX()[x]-range,spectrum.GetPositionX()[x]+range,"no-print");
-    //data_channels
-    //data_channels.push_back(fit.GetCentroid());
-    //datatosource[fit->GetCentroid()] = sqrt(-1);
-    data_channels.push_back(fit->GetCentroid());
-    data->GetListOfFunctions()->Remove(fit);
-    peak_area[fit->GetCentroid()] = fit->GetSum();
+  
+    //GPeak *fit = PhotoPeakFit(data,spectrum.GetPositionX()[x]-range,spectrum.GetPositionX()[x]+range,"no-print");
+    //data_channels.push_back(fit->GetCentroid());
+    //data->GetListOfFunctions()->Remove(fit);
+    //peak_area[fit->GetCentroid()] = fit->GetSum();
+
+    peak_positions.push_back(spectrum.GetPositionX()[x]);
+    
+
   }
 
 
-  std::map<double,double> datatosource = Match(data_channels,source_energy);; 
+  //std::map<double,double> datatosource = Match(data_channels,source_energy);; 
+  std::map<double,double> datatosource = Match(peak_positions,source_energy);; 
 
   //PrintMap(datatosource);
+  double range = 8*data->GetXaxis()->GetBinWidth(1);
   for(auto it : datatosource) {
-    AddPeak(it.first,it.second,source->GetName(),peak_area.at(it.first),src_eng_int[it.second]);
+
+    double peak = it.first;
+    double eng  = it.second;
+
+    GPeak *fit = PhotoPeakFit(data,peak-range,peak+range,"no-print");
+    
+    //data_channels.push_back(fit->GetCentroid());
+    //data->GetListOfFunctions()->Remove(fit);
+    //peak_area[fit->GetCentroid()] = fit->GetSum();
+
+    //AddPeak(it.first,it.second,source->GetName(),peak_area.at(it.first),src_eng_int[it.second]);
+    AddPeak(peak,eng,source->GetName(),fit->GetSum(),src_eng_int[eng]);
   }
   
   //Print();

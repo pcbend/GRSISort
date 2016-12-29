@@ -1,5 +1,6 @@
 #include "TMnemonic.h"
 
+
 #include <algorithm>
 
 //Detector dependent includes
@@ -100,7 +101,10 @@ void TMnemonic::EnumerateMnemonic(std::string mnemonic_word, int &mnemonic_enum)
 void TMnemonic::EnumerateSystem(){
 	//Enumerating the fSystemString must come after the total mnemonic has been parsed as the details of other parts of
 	//the mnemonic must be known
-	if(fSystemString.compare("TI")==0) {
+	std::transform(fSystemString.begin(),fSystemString.end(),fSystemString.begin(),
+                 [](unsigned char c) { return std::toupper(c);} );
+  
+  if(fSystemString.compare("TI")==0) {
 		fSystem = kTigress;
 	} else if (fSystemString.compare("SH")==0) {
 		fSystem = kSharc;

@@ -27,7 +27,7 @@ public:
   int GetFitOrder() const { return fit_order; }
   void SetFitOrder(int order) { fit_order = order; }
 
-  TGraph& MakeCalibrationGraph(double min_figure_of_merit = 0.001);
+  TGraph& MakeCalibrationGraph(bool zerozero=false); //  double min_figure_of_merit = 0.001);
   TGraphErrors &MakeEffGraph(double secondsi=3600.,double bq=100000.,Option_t *opt="draw"); 
   std::vector<double> Calibrate(double min_figure_of_merit = 0.001);
 
@@ -39,7 +39,7 @@ public:
 
   void UpdateTChannel(TChannel* channel);
 
-  void Fit(int order=1); 
+  void Fit(int order=1,bool zerozero=false); 
   double GetParameter(int i=0) const;
   double GetEffParameter(int i=0) const;
 

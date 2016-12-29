@@ -76,7 +76,7 @@ int TGRSIDetectorHit::GetCharge() const {
     return std::floor(Charge());
   if(fKValue>0){
     return std::floor(Charge()/((Float_t)fKValue));// this will use the integration value
-  } else if(chan->UseCalFileIntegration()) {
+  } else if(1) { //chan->UseCalFileIntegration()) {
     return std::floor(Charge())/((Float_t)chan->GetIntegration());// this will use the integration value
   }                                                               // in the TChannel if it exists.
   return std::floor(Charge());// this will use no integration value
@@ -92,7 +92,7 @@ double TGRSIDetectorHit::GetEnergy(Option_t* opt) const {
   }
   if(fKValue >0) {
     return SetEnergy(chan->CalibrateENG(Charge(),(int)fKValue));
-  } else if(chan->UseCalFileIntegration()) {
+  } else if(1) { //chan->UseCalFileIntegration()) {
     return SetEnergy(chan->CalibrateENG(Charge(),0));  // this will use the integration value
                                             // in the TChannel if it exists.
   }

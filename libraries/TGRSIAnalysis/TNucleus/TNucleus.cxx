@@ -73,6 +73,10 @@ TNucleus::TNucleus(const char *name){
         Name.clear();
         Name.assign("he4");
         break;
+      case 'c':
+        Name.clear();
+        Name.assign("c12");
+        break;
       default:
         printf("error, type numbersymbol, or symbolnumber, i.e. 30Mg oder Mg30\n");
         return;
@@ -124,7 +128,7 @@ TNucleus::TNucleus(const char *name){
   SetName();
   //SetName(element.c_str());
   //SetSourceData();
-  this->LoadTransitionFile();
+//  this->LoadTransitionFile();
 }
 /*
  */

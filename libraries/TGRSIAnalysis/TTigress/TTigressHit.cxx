@@ -63,11 +63,17 @@ TVector3 TTigressHit::GetPosition() const {
 TVector3 TTigressHit::GetLastPosition(Double_t dist) const {
   
   const TGRSIDetectorHit *seg;
-  if(GetNSegments()>0) 
-    seg = &GetSegmentHit(GetNSegments()-1); //returns the last segment in the segment vector.
-  else
+  if(GetNSegments()>0) {
+    int n = GetNSegments()-1;
+    while(n>=0) {
+      seg = &GetSegmentHit(n); //returns the last segment in the segment vector.
+      if(seg->Charge()>20.) 
+         break;
+      n--;
+    }
+  } else {
     seg = this;  // if no segments, use the core. pcb.
-
+  }
   return TTigress::GetPosition(seg->GetDetector(),seg->GetCrystal(),seg->GetSegment(),dist);  
 }
 
@@ -165,3 +171,16 @@ void TTigressHit::SetWavefit()   {
     fSig2Noise = pulse.get_sig2noise();
   }
 }
+
+
+Int_t  TTigressHit::GetSegment() const {
+  if(GetNSegments())  {
+    return GetSegmentHit(0).GetSegment();
+  } else {
+    return TGRSIDetectorHit::GetSegment();
+  }
+}
+
+
+
+

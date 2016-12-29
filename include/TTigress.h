@@ -56,6 +56,7 @@ class TTigress : public TGRSIDetector {
 		      TTigressHit *GetTigressHit(int i)       { return &fTigressHits.at(i);  }  //!<!        
 		const TGRSIDetectorHit *GetHit(int i)   const { return GetTigressHit(i);    }  //!<!
 		size_t GetMultiplicity()                const { return fTigressHits.size(); }  //!<!
+		size_t Size() const { return GetMultiplicity(); }  //!<!
 		static TVector3 GetPosition(int DetNbr ,int CryNbr, int SegNbr, double distance = 0.,bool smear=false);    //!<!
 		static TVector3 GetPosition(const TTigressHit&,double distance = 0.);    //!<!
 

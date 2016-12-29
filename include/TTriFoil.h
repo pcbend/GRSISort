@@ -33,6 +33,8 @@ class TTriFoil :  public TDetector {
 #ifndef __CINT__
 		void AddFragment(std::shared_ptr<const TFragment>, TChannel*); //!<!
 #endif
+		void BuildHits();
+
 
 		void Clear(Option_t* opt = "");   //!<!
 		void Print(Option_t* opt = "") const;   //!<!

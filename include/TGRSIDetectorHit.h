@@ -138,6 +138,9 @@ class TGRSIDetectorHit : public TObject 	{
 			return fChannel; 
 		}  //!<!
 
+     virtual int GetSubSystem() const { if(GetChannel()) return GetChannel()->GetMnemonic()->SubSystem(); return -1; }  
+
+
       //stored in the tchannel (things common to all hits of this address)
       virtual Int_t  GetDetector()  const; //!<!
       virtual Int_t  GetSegment()   const; //!<!	
