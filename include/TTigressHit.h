@@ -91,11 +91,8 @@ class TTigressHit : public TGRSIDetectorHit {
     const std::vector<TGRSIDetectorHit>& GetSegmentVec() const { return fSegments; }
     /* const std::vector<TGRSIDetectorHit>& GetBGOVec()     const { return fBgos; } */
 
-    /* modified by Momiyama and Niikura on Aug. 23, 2016 */
-    /* int GetFirstSeg() const { if(fSegments.size()>0) return fSegments.front().GetSegment(); return -1; } */
-    /* int GetLastSeg()  const { if(fSegments.size()>0) return fSegments.back().GetSegment(); return -1; } */
-    int GetFirstSeg() const { if(fSegments.size()>0) return fSegments.front().GetSegment(); return 0; }
-    int GetLastSeg()  const { if(fSegments.size()>0) return fSegments.back().GetSegment(); return 0; }
+    //int GetFirstSeg() const { if(fSegments.size()>0) return fSegments.front().GetSegment(); return -1; } 
+    //int GetLastSeg()  const { if(fSegments.size()>0) return fSegments.back().GetSegment(); return -1; } 
 
     static bool Compare(TTigressHit lhs, TTigressHit rhs);        //!<!
     static bool CompareEnergy(TTigressHit lhs, TTigressHit rhs);  //!<!
@@ -106,6 +103,10 @@ class TTigressHit : public TGRSIDetectorHit {
     TVector3 GetPosition() const; 
     TVector3 GetLastPosition(Double_t dist) const;
     TVector3 GetLastPosition() const;
+
+    int  GetFirstSegment() const;
+    int  GetLastSegment() const;
+
 
   private:
     Double_t GetDefaultDistance() const { return 110.; }

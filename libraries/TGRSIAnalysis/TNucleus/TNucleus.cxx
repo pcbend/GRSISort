@@ -10,7 +10,7 @@
 #include <TClass.h>
 #include <TGraph.h>
 
-//#include "ProgramPath.h"
+#include "ProgramPath.h"
 
 //#define debug
 
@@ -31,7 +31,7 @@ static double amu = 931.494043;
 //static double MeV2Kg = 1.77777778e-30;
 
 std::string& TNucleus::massfile(){
-  static std::string output = std::string(getenv("GRSISYS")) + "/libraries/TGRSIAnalysis/SourceData/mass.dat";
+  static std::string output = std::string(getenv("GRSISYS")) + "/libraries/SourceData/mass.dat";
   return output;
 }
 //const char *TNucleus::massfile = mfile.c_str();
@@ -42,17 +42,9 @@ TNucleus::TNucleus(const char *name){
   std::string Name = name;
   //fName=name;
   //SetMassFile();
-  	int Number = 0;
-  	std::string symbol;
-  	std::string element;
-  	int first_digit, first_letter;
-  	int z,n;
-  	std::string sym_name;
-  	double mass;
-  	bool found = false;
-  	std::string line;
-  	std::ifstream infile;
-  	std::string MassFile;
+  int Number = 0;
+  std::string symbol;
+  std::string element;
   Name.erase(std::remove_if(Name.begin(), Name.end(), (int(*)(int))std::isspace), Name.end());
 
   if(Name.length()<2) {
@@ -73,48 +65,43 @@ TNucleus::TNucleus(const char *name){
         Name.clear();
         Name.assign("he4");
         break;
-      case 'c':
-        Name.clear();
-        Name.assign("c12");
-        break;
       default:
         printf("error, type numbersymbol, or symbolnumber, i.e. 30Mg oder Mg30\n");
         return;
     };
   }
-  try{
-  		first_digit  = Name.find_first_of("0123456789 \t\n\r");
-  		first_letter = Name.find_first_not_of("0123456789 \t\n\r");
-  
-  		if(first_digit>first_letter) {
-    		Number = atoi(Name.substr(first_digit).c_str());
-    		symbol.append(Name.substr(first_letter,first_digit-first_letter));
-  		} else {
-    		Number = atoi(Name.substr(first_digit,first_letter-first_digit).c_str());
-    		symbol.append(Name.substr(first_letter));
-  	
-		}
-  		element.append(std::to_string((long long)Number)); element.append(symbol);
-  		MassFile = massfile();
-  		//MassFile.append(massfile);
-  		infile.open(MassFile.c_str());
-  		//printf("MassFile.c_str()
-  		while(getline(infile,line)) {
-    		if(line.length() <1)
-      		continue;
+  int first_digit  = Name.find_first_of("0123456789 \t\n\r");
+  int first_letter = Name.find_first_not_of("0123456789 \t\n\r");
+  if(first_digit>first_letter) {
+    Number = atoi(Name.substr(first_digit).c_str());
+    symbol.append(Name.substr(first_letter,first_digit-first_letter));
+  } else {
+    Number = atoi(Name.substr(first_digit,first_letter-first_digit).c_str());
+    symbol.append(Name.substr(first_letter));
+  }
+
+  element.append(std::to_string((long long)Number)); element.append(symbol);
+  std::string line;
+  std::ifstream infile;
+  std::string MassFile = massfile();//getenv("GRSISYS");
+  //MassFile.append(massfile);
+  infile.open(MassFile.c_str());
+  //printf("MassFile.c_str()
+  int z,n;
+  std::string sym_name;
+  double mass;
+  bool found = false;
+  while(getline(infile,line)) {
+    if(line.length() <1)
+      continue;
 //              printf("%s\n",line.c_str());
-    		std::stringstream ss(line);
-   		ss>>n; ss>>z; ss>>sym_name; ss>>mass;
-    		if(strcasecmp(element.c_str(),sym_name.c_str()) == 0) {
-      		found = true;
-      		break;
-    		}
-  		}
-	}
-  	catch(std::out_of_range){
-		std::cout << "Could not parse element " << name<< std::endl << "Nucleus not Set!" << std::endl;
-		return;
-	}
+    std::stringstream ss(line);
+    ss>>n; ss>>z; ss>>sym_name; ss>>mass;
+    if(strcasecmp(element.c_str(),sym_name.c_str()) == 0) {
+      found = true;
+      break;
+    }
+  }
   if(!found) {
     printf("Warning: Element %s not found in the mass table %s.\n Nucleus not Set!\n",element.c_str(),MassFile.c_str());
     return;
@@ -128,7 +115,7 @@ TNucleus::TNucleus(const char *name){
   SetName();
   //SetName(element.c_str());
   //SetSourceData();
-//  this->LoadTransitionFile();
+  this->LoadTransitionFile();
 }
 /*
  */
@@ -195,7 +182,7 @@ TNucleus::TNucleus(int charge, int neutrons, const char* MassFile){
 //  fA = aval;
 //}
 
-void TNucleus::SetName(const char* c) {
+void TNucleus::SetName() {
   std::string name = this->GetSymbol();
   name.append(std::to_string(this->GetA()));
   TNamed::SetName(name.c_str());
@@ -313,6 +300,7 @@ double TNucleus::GetRadius() const{
 }
 
 /*
+<<<<<<< HEAD
    bool TNucleus::SetSourceData() {
 
    std::string name = GetSymbol();
@@ -357,6 +345,28 @@ double TNucleus::GetRadius() const{
 
 printf("Found %d Transitions for %s\n",TransitionList.GetSize(),GetName());
 return true;
+=======
+  bool TNucleus::SetSourceData() {
+
+  std::string name = GetSymbol();
+  if(name.length()==0)
+  return false;
+
+  if(name[0]<='Z' && name[0]>='A')
+  name[0] = name[0]-'A'+'a';
+  name = name + Form("%i",GetA()) + ".sou";
+  std::string path = getenv("GRSISYS");
+  path +=  "/libraries/TGRSIAnalysis/SourceData/";
+  path +=  name;
+
+  printf("path = %s\n",path.c_str());
+  std::ifstream sourcefile;
+  sourcefile.open(path.c_str());
+  if(!sourcefile.is_open()) {
+  printf("unable to set source data for %s.\n",GetName());
+  return false;
+  }
+>>>>>>> 5aa7f5e5225d24f8b01a7ffcc333c50eff387814
 
   TransitionList.Clear();
 
@@ -432,7 +442,7 @@ void TNucleus::Print(Option_t *opt) const{
   int counter =0;
   while(TTransition *tran = (TTransition*)next()) {
     printf("\t%i\t",counter++);
-    tran->Print();
+    tran->Print(); 
   }
 }
 
@@ -455,22 +465,23 @@ bool TNucleus::LoadTransitionFile(){
   if(TransitionList.GetSize())
     return false;
   std::string filename;
-  filename = std::string(getenv("GRSISYS")) + "/libraries/TGRSIAnalysis/SourceData/";
+  filename = std::string(getenv("GRSISYS")) + "/libraries/SourceData/";
   std::string symbol = this->GetSymbol();
   std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
-  filename.append(symbol.c_str());
+  filename.append(symbol.c_str());          
   filename.append(std::to_string(this->GetA()));
   filename.append(".sou");
+
   std::ifstream transfile;
   transfile.open(filename.c_str());
   if(!transfile.is_open()) {
-    printf("failed to open source file: %s\n",filename.c_str());
+    //printf("failed: %s\n",filename.c_str());
     return false;
   }
   //printf("found %s\n",filename.c_str());
-
+  
   std::string line;
-
+ 
   while(getline(transfile,line)) {
     //printf("%i\t%s\n",counter++,line.c_str());
     if(!line.compare(0,2,"//"))
@@ -497,7 +508,7 @@ bool TNucleus::LoadTransitionFile(){
     }
     AddTransition(tran);
   }
-
+   
   return true;
 
 }

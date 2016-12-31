@@ -147,6 +147,7 @@ class TGRSIDetectorHit : public TObject 	{
       virtual Int_t  GetCrystal()   const; //!<!
       virtual const char *GetName() const; //!<!
       virtual UShort_t  GetArrayNumber() const; //!<!
+      virtual Short_t GetChannelNumber() const;
 
       //virtual void GetSegment() const; 
 

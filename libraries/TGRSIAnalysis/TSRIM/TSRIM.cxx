@@ -198,8 +198,8 @@ double TSRIM::GetEnergy(double energy,double dist)	{
 
   if( energy > Emax || xbegin+dist < Xmin ){
     printf("\n {TSRIM} WARNING: data is out of range. Results may be unpredictable.\n"
-              DRED "\t\tenergy = %.03f keV \txbegin = %.02f um\t dist = %.02f um\t xend = %.02f um\n"
-              DYELLOW "\t\tErange = [%.03f , %.03f] keV \t\t Xrange = [0 , %.1f] um\n" RESET_COLOR ,energy,xbegin,dist,xbegin+dist,Emin,Emax,Xmax);
+              DRED "\tenergy = %.03f keV \txbegin = %.02f um\t dist = %.02f um\t xend = %.02f um\n"
+              DYELLOW "\tErange = [%.03f , %.03f] keV \t\t Xrange = [0 , %.1f] um\n" RESET_COLOR ,energy,xbegin,dist,xbegin+dist,Emin,Emax,Xmax);
   }  
   else if (xbegin > Xmax || xbegin+dist > Xmax)
     return 0.0;

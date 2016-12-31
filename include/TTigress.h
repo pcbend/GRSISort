@@ -71,7 +71,7 @@ class TTigress : public TGRSIDetector {
 		//void DeleteTigressHit(const int& i) { fTigressHits.erase(fTigressHits.begin()+i); } 
 
 		Int_t GetAddbackMultiplicity();
-		TTigressHit* GetAddbackHit(const int&);
+		TTigressHit* GetAddbackHit(int);
 		void ResetAddback();         //!<!
 		UShort_t GetNAddbackFrags(size_t idx) const;
 

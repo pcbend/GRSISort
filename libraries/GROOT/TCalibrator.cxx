@@ -260,16 +260,17 @@ int TCalibrator::AddData(TH1 *data,TNucleus *source, double sigma,double thresho
   //std::map<double,double> peak_area;; 
   //std::vector<double> data;
   for(int x=0;x<spectrum.GetNPeaks();x++) {
-    //double range = 8*data->GetXaxis()->GetBinWidth(1);
+    double range = 8*data->GetXaxis()->GetBinWidth(1);
     //printf(DGREEN "\tlow %.02f \t high %.02f" RESET_COLOR "\n",spectrum.GetPositionX()[x]-range,spectrum.GetPositionX()[x]+range);
   
-    //GPeak *fit = PhotoPeakFit(data,spectrum.GetPositionX()[x]-range,spectrum.GetPositionX()[x]+range,"no-print");
+    GPeak *fit = PhotoPeakFit(data,spectrum.GetPositionX()[x]-range,spectrum.GetPositionX()[x]+range,"no-print");
     //data_channels.push_back(fit->GetCentroid());
     //data->GetListOfFunctions()->Remove(fit);
     //peak_area[fit->GetCentroid()] = fit->GetSum();
 
     peak_positions.push_back(spectrum.GetPositionX()[x]);
-    
+    //peak_positions.push_back(fit->GetCentroid());
+        
 
   }
 
@@ -277,7 +278,7 @@ int TCalibrator::AddData(TH1 *data,TNucleus *source, double sigma,double thresho
   //std::map<double,double> datatosource = Match(data_channels,source_energy);; 
   std::map<double,double> datatosource = Match(peak_positions,source_energy);; 
 
-  //PrintMap(datatosource);
+  PrintMap(datatosource);
   double range = 8*data->GetXaxis()->GetBinWidth(1);
   for(auto it : datatosource) {
 
@@ -345,6 +346,7 @@ std::map<double,double> TCalibrator::Match(std::vector<double> peaks,std::vector
 
         if(peaks.size()>3) {
           double max_err = 0.02; 
+          //double max_err = 0.10; 
           double pratio = peak_values.front()/peak_values.at(peak_values.size()-2);
           double sratio = source_values.front()/source_values.at(source_values.size()-2);
           //std::cout << "ratio: " << pratio << " - " << sratio << " = " << std::abs(pratio-sratio) << std::endl;

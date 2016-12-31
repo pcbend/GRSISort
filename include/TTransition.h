@@ -6,6 +6,7 @@
  */
 
 #include <cstdio>
+#include <cmath>
 
 #include "TClass.h"
 #include "TObject.h"

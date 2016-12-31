@@ -74,11 +74,11 @@ class TNucleus : public TNamed{
   void Print(Option_t *opt = "") const;
   void WriteSourceFile(std::string outfilename = "");
 
-  const TList * GetTransitionList() const { return &TransitionList; }
+  TList *GetTransitionList() { return &TransitionList; }
 
  private:
    
-  void SetName(const char* c = "");
+  void SetName();
   
    int fA; 						// Number of nucleons (Z + N)
    int fN;						// Number of neutrons (N)

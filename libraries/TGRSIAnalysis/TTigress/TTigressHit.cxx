@@ -81,6 +81,37 @@ TVector3 TTigressHit::GetLastPosition() const {
   return GetLastPosition(GetDefaultDistance());  
 }
 
+
+int TTigressHit::GetFirstSegment() const {
+  int n = 0;
+  const TGRSIDetectorHit *seg;
+  if(GetNSegments()>0) { 
+    seg = &GetSegmentHit(n); //returns the last segment in the segment vector.
+    if(seg->Charge()>20.)
+      return 0;
+  }
+  return 0;
+}
+
+
+int TTigressHit::GetLastSegment() const {
+  int n = 0;
+  const TGRSIDetectorHit *seg;
+  if(GetNSegments()>0) {
+    n = GetNSegments()-1;
+    while(n>=0) {
+      seg = &GetSegmentHit(n); //returns the last segment in the segment vector.
+      if(seg->Charge()>20.) 
+         break;
+      n--;
+    }
+  } 
+  if(n==-1) n=0;
+  return n;  
+}
+
+
+
 void TTigressHit::Print(Option_t *opt) const	{
   TString sopt(opt);
   printf("==== TigressHit @ 0x%p\n ====",(void*)this);

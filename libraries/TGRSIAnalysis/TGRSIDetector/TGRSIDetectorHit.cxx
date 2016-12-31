@@ -23,9 +23,9 @@ TGRSIDetectorHit::TGRSIDetectorHit(const int& Address) : TObject() {
 TGRSIDetectorHit::TGRSIDetectorHit(const TGRSIDetectorHit& rhs, bool copywave) : TObject(rhs) {
   ///Default Copy constructor
   rhs.Copy(*this);
-  if(copywave) {
-    rhs.CopyWave(*this);
-  }
+  //if(copywave) {
+    //rhs.CopyWave(*this);
+  //}
   ClearTransients();
 
   Class()->IgnoreTObjectStreamer(kTRUE);
@@ -117,13 +117,13 @@ void TGRSIDetectorHit::Copy(TObject& rhs) const {
 }
 
 void TGRSIDetectorHit::CopyWave(TObject &rhs) const {
-  static_cast<TGRSIDetectorHit&>(rhs).fWaveform       = fWaveform;
+  //static_cast<TGRSIDetectorHit&>(rhs).fWaveform       = fWaveform;
 }
 
 void TGRSIDetectorHit::Copy(TObject& rhs,bool copywave) const {
   Copy(rhs);
-  if(copywave)
-    CopyWave(rhs);
+  //if(copywave)
+    //CopyWave(rhs);
 }
 
 
@@ -309,4 +309,10 @@ Long_t TGRSIDetectorHit::GetCycleTimeStamp() const {
 // const here is rather dirty
 void TGRSIDetectorHit::SetHitBit(enum EBitFlag flag, Bool_t set) const {
 	fBitflags.SetBit(flag,set);
+}
+
+Short_t TGRSIDetectorHit::GetChannelNumber() const {
+     TChannel* chan = TChannel::GetChannel(fAddress);
+        if(!chan ) return 0;
+           return chan->GetNumber();
 }

@@ -9,38 +9,48 @@
 
 #include "TGRSIRunInfo.h"
 
+#include "GValue.h"
+
+
 /// \cond CLASSIMP
 ClassImp(TTigress)
    /// \endcond
 
-   double TTigress::fTargetOffset = 0.;
+double TTigress::fTargetOffset = 0.;
 
-   // Default tigress unpacking settings
-   TTransientBits<UShort_t> TTigress::fgTigressBits(TTigress::kSetCoreWave | TTigress::kSetBGOHits); 
+// Default tigress unpacking settings
+TTransientBits<UShort_t> TTigress::fgTigressBits(TTigress::kSetCoreWave | TTigress::kSetBGOHits); 
 
-   //Why arent these TTigress class functions?
-   bool DefaultAddback(TTigressHit& one, TTigressHit& two) {
+//Why arent these TTigress class functions?
+bool DefaultAddback(TTigressHit& one, TTigressHit& two) {
 
-      // Extended options as for efficiency call we have been limited to cores only 
-      //
-      // the below code (in the if statement)  should be changed. There is no 
-      // real reason the we should add diagonal xtals in a detector and not 
-      // adjcent xtal in the array. If one is worried about the suppressor status 
-      // of the array, the position could also be checked.  pcb.
-      //
-
-      double res = (one.GetLastPosition() - two.GetPosition()).Mag();
-      int one_seg  = one.GetSegmentVec().back().GetSegment();
-      int two_seg  = two.GetSegmentVec().front().GetSegment();
-      // GetTime is in ns;  AddbackWindow is in 10's of ns.
-      return ((std::abs(one.GetTime() - two.GetTime()) < (TGRSIRunInfo::AddBackWindow()*10.0)) &&
-            ((((one_seg < 5 && two_seg < 5) 
-               || (one_seg > 4 && two_seg > 4)) 
-              && res < 54) ||  //not front to back
-             (((one_seg < 5 && two_seg > 4) 
-               || (one_seg > 4 && two_seg < 5)) 
-              && res < 105))); //    front to back
-   }
+   // Extended options as for efficiency call we have been limited to cores only 
+   //
+   // the below code (in the if statement)  should be changed. There is no 
+   // real reason the we should add diagonal xtals in a detector and not 
+   // adjcent xtal in the array. If one is worried about the suppressor status 
+   // of the array, the position could also be checked.  pcb.
+   //
+  
+  if(one.GetSegmentMultiplicity()==0 || two.GetSegmentMultiplicity()==0){
+    return ((one.GetDetector() == two.GetDetector()) &&
+            abs(one.GetCrystal()-two.GetCrystal())==1 &&
+            (std::abs(one.GetTime() - two.GetTime()) < 
+            TGRSIRunInfo::AddBackWindow()*10.0));
+  } else {
+    double res = (one.GetLastPosition() - two.GetPosition()).Mag();
+    int one_seg  = one.GetLastSegment(); //one.GetSegmentVec().back().GetSegment();
+    int two_seg  = two.GetFirstSegment(); //two.GetSegmentVec().front().GetSegment();
+    // GetTime is in ns;  AddbackWindow is in 10's of ns.
+    return ((std::abs(one.GetTime() - two.GetTime()) < (TGRSIRunInfo::AddBackWindow()*10.0)) &&
+         ((((one_seg < 5 && two_seg < 5) 
+            || (one_seg > 4 && two_seg > 4)) 
+           && res < 54) ||  //not front to back
+          (((one_seg < 5 && two_seg > 4) 
+            || (one_seg > 4 && two_seg < 5)) 
+           && res < 105))); //    front to back
+  }
+}
 
 std::function<bool(TTigressHit&, TTigressHit&)> TTigress::fAddbackCriterion = DefaultAddback;
 
@@ -74,9 +84,10 @@ TTigress::~TTigress() {
 
 void TTigress::Copy(TObject& rhs) const {
    TGRSIDetector::Copy(rhs);
+   fTigressBits.SetBit(kAddbackSet, true);
    static_cast<TTigress&>(rhs).fTigressHits    = fTigressHits;
-   static_cast<TTigress&>(rhs).fAddbackHits    = fAddbackHits;
-   static_cast<TTigress&>(rhs).fAddbackFrags   = fAddbackFrags;
+   //static_cast<TTigress&>(rhs).fAddbackHits    = fAddbackHits;
+   //static_cast<TTigress&>(rhs).fAddbackFrags   = fAddbackFrags;
    static_cast<TTigress&>(rhs).fTigressBits  	 = 0;
 
 }
@@ -85,8 +96,9 @@ void TTigress::Clear(Option_t *opt)  {
    //Clears the mother, and all of the hits
    TGRSIDetector::Clear(opt);
    fTigressHits.clear();
-   fAddbackHits.clear();
-   fAddbackFrags.clear();
+   //fAddbackHits.clear();
+   //fAddbackFrags.clear();
+   ResetAddback();
    fBgos.clear();
    // fTigressBits.SetBit(TTigress::kAddbackSet,false);
    fTigressBits = 0;
@@ -157,11 +169,12 @@ Int_t TTigress::GetAddbackMultiplicity() {
    return fAddbackHits.size();
 }
 
-TTigressHit* TTigress::GetAddbackHit(const int& i) {
+TTigressHit* TTigress::GetAddbackHit(int i) {
    ///Get the ith addback hit. This function calls GetAddbackMultiplicity to check the range of the index.
    ///This automatically calculates all addback hits if they haven't been calculated before.
    if(i < GetAddbackMultiplicity()) {
-      return &fAddbackHits.at(i);
+      //return &fAddbackHits.at(i);
+      return &fAddbackHits[i];
    } else {
       std::cerr << "Addback hits are out of range" << std::endl;
       throw grsi::exit_exception(1);
@@ -170,7 +183,7 @@ TTigressHit* TTigress::GetAddbackHit(const int& i) {
 }
 
 void TTigress::BuildHits(){
-
+   //std::cout << " building hits\n" << std::endl;
    //for(size_t i = 0; i<GetMultiplicity(); i++){
    //  if(GetTigressHit(i)->GetCharge() <= 0.5)
    //    //DeleteTigressHit(i);
@@ -182,8 +195,8 @@ void TTigress::BuildHits(){
       if(it->GetNSegments()>1)
          it->SortSegments();
 
-      if(it->HasWave() &&TGRSIRunInfo::IsWaveformFitting() ) 
-         it->SetWavefit();
+      //if(it->HasWave() &&TGRSIRunInfo::IsWaveformFitting() ) 
+      //   it->SetWavefit();
       it++;
    }
    if(fTigressHits.size()>1)  
@@ -235,15 +248,15 @@ void TTigress::AddFragment(std::shared_ptr<const TFragment> frag, TChannel* chan
                   return;
            } else {
                hit->CopyFragment(*frag);
-               if(TestGlobalBit(kSetCoreWave))
-                  frag->CopyWave(*hit);
+               //if(TestGlobalBit(kSetCoreWave))
+               //   frag->CopyWave(*hit);
                return;
             }
          }
       }
       corehit.CopyFragment(*frag);
-      if(TestGlobalBit(kSetCoreWave))
-         frag->CopyWave(corehit);
+      //if(TestGlobalBit(kSetCoreWave))
+      //   frag->CopyWave(corehit);
       fTigressHits.push_back(corehit);
       return;
    } else if(chan->GetMnemonic()->SubSystem() == TMnemonic::kG) { // its ge but its not a core...
@@ -252,8 +265,8 @@ void TTigress::AddFragment(std::shared_ptr<const TFragment> frag, TChannel* chan
          TTigressHit* hit = GetTigressHit(i);
          if((hit->GetDetector() == chan->GetDetectorNumber()) &&
                (hit->GetCrystal() == chan->GetCrystalNumber())) { //we have a match;
-            if(TestGlobalBit(kSetSegWave))         
-               frag->CopyWave(temp);
+            //if(TestGlobalBit(kSetSegWave))         
+            //   frag->CopyWave(temp);
             hit->AddSegment(temp);
             //printf(" I found a core !\t%i\n",hit->GetNSegments()); fflush(stdout);
             return;
@@ -261,8 +274,8 @@ void TTigress::AddFragment(std::shared_ptr<const TFragment> frag, TChannel* chan
       }
       TTigressHit corehit;
       corehit.SetAddress( (frag->GetAddress()) );  // fake it till you make it 
-      if(TestGlobalBit(kSetSegWave))         
-         frag->CopyWave(temp);
+      //if(TestGlobalBit(kSetSegWave))         
+      //   frag->CopyWave(temp);
       corehit.AddSegment(temp);
       fTigressHits.push_back(corehit);
       //if(fTigressHits.size()>100) {
@@ -317,89 +330,96 @@ void TTigress::AddFragment(std::shared_ptr<const TFragment> frag, TChannel* chan
 
 
 
-   TVector3 TTigress::GetPosition(const TTigressHit &hit, double dist)  {
-      return TTigress::GetPosition(hit.GetDetector(),hit.GetCrystal(),hit.GetFirstSeg(),dist);
+TVector3 TTigress::GetPosition(const TTigressHit &hit, double dist)  {
+  return TTigress::GetPosition(hit.GetDetector(),hit.GetCrystal(),hit.GetFirstSegment(),dist);
+}
+
+TVector3 TTigress::GetPosition(int DetNbr,int CryNbr,int SegNbr, double dist,bool smear)  {
+  TVector3 det_pos;
+  double xx = 0;
+  double yy = 0;
+  double zz = 0;
+
+  //printf("xx = %f\nyy = %f\n zz = %f\n",GeBluePosition[DetNbr][SegNbr][0],GeBluePosition[DetNbr][SegNbr][1],GeBluePosition[DetNbr][SegNbr][2]);
+
+  if(!(dist>0))dist=TGRSIRunInfo::HPGeArrayPosition();
+
+
+  if(dist > 140.){//145.0
+
+     switch(CryNbr)	{
+        case -1:
+           break;
+        case 0:
+           xx = GeBluePositionBack[DetNbr][SegNbr][0];
+           yy = GeBluePositionBack[DetNbr][SegNbr][1];
+           zz = GeBluePositionBack[DetNbr][SegNbr][2];
+           break;
+        case 1:
+           xx = GeGreenPositionBack[DetNbr][SegNbr][0]; 
+           yy = GeGreenPositionBack[DetNbr][SegNbr][1]; 
+           zz = GeGreenPositionBack[DetNbr][SegNbr][2]; 
+           break;
+        case 2:
+           xx = GeRedPositionBack[DetNbr][SegNbr][0]; 
+           yy = GeRedPositionBack[DetNbr][SegNbr][1]; 
+           zz = GeRedPositionBack[DetNbr][SegNbr][2];  
+           break;
+        case 3:
+           xx = GeWhitePositionBack[DetNbr][SegNbr][0]; 
+           yy = GeWhitePositionBack[DetNbr][SegNbr][1]; 
+           zz = GeWhitePositionBack[DetNbr][SegNbr][2]; 
+           break;
+     };
+     //printf("xx = %f\nyy = %f\n zz = %f\n",xx,yy,zz);
+     //det_pos.SetXYZ(xx,yy,zz);
+  }else{
+
+      switch(CryNbr)	{
+         case -1:
+            break;
+         case 0:
+            xx = GeBluePosition[DetNbr][SegNbr][0];
+            yy = GeBluePosition[DetNbr][SegNbr][1];
+            zz = GeBluePosition[DetNbr][SegNbr][2];
+            break;
+         case 1:
+            xx = GeGreenPosition[DetNbr][SegNbr][0]; 
+            yy = GeGreenPosition[DetNbr][SegNbr][1]; 
+            zz = GeGreenPosition[DetNbr][SegNbr][2]; 
+            break;
+         case 2:
+            xx = GeRedPosition[DetNbr][SegNbr][0]; 
+            yy = GeRedPosition[DetNbr][SegNbr][1]; 
+            zz = GeRedPosition[DetNbr][SegNbr][2];  
+            break;
+         case 3:
+            xx = GeWhitePosition[DetNbr][SegNbr][0]; 
+            yy = GeWhitePosition[DetNbr][SegNbr][1]; 
+            zz = GeWhitePosition[DetNbr][SegNbr][2]; 
+            break;
+      };
+      //printf("xx = %f\nyy = %f\n zz = %f\n",xx,yy,zz);
+      //zz -= fTargetOffset;
+      //det_pos.SetXYZ(xx,yy,zz);
    }
+   if(GValue::Get("TIGX")) { xx += GValue::Get("TIGX")->GetValue(); } 
+   if(GValue::Get("TIGY")) { yy += GValue::Get("TIGY")->GetValue(); } 
+   if(GValue::Get("TIGZ")) { zz += GValue::Get("TIGZ")->GetValue(); } 
+ 
+  
+   det_pos.SetXYZ(xx,yy,zz);
 
-   TVector3 TTigress::GetPosition(int DetNbr,int CryNbr,int SegNbr, double dist,bool smear)  {
-      TVector3 det_pos;
-      double xx = 0;
-      double yy = 0;
-      double zz = 0;
-
-      //printf("xx = %f\nyy = %f\n zz = %f\n",GeBluePosition[DetNbr][SegNbr][0],GeBluePosition[DetNbr][SegNbr][1],GeBluePosition[DetNbr][SegNbr][2]);
-
-      if(!(dist>0))dist=TGRSIRunInfo::HPGeArrayPosition();
-
-      if(dist > 140.){//145.0
-
-         switch(CryNbr)	{
-            case -1:
-               break;
-            case 0:
-               xx = GeBluePositionBack[DetNbr][SegNbr][0];
-               yy = GeBluePositionBack[DetNbr][SegNbr][1];
-               zz = GeBluePositionBack[DetNbr][SegNbr][2];
-               break;
-            case 1:
-               xx = GeGreenPositionBack[DetNbr][SegNbr][0]; 
-               yy = GeGreenPositionBack[DetNbr][SegNbr][1]; 
-               zz = GeGreenPositionBack[DetNbr][SegNbr][2]; 
-               break;
-            case 2:
-               xx = GeRedPositionBack[DetNbr][SegNbr][0]; 
-               yy = GeRedPositionBack[DetNbr][SegNbr][1]; 
-               zz = GeRedPositionBack[DetNbr][SegNbr][2];  
-               break;
-            case 3:
-               xx = GeWhitePositionBack[DetNbr][SegNbr][0]; 
-               yy = GeWhitePositionBack[DetNbr][SegNbr][1]; 
-               zz = GeWhitePositionBack[DetNbr][SegNbr][2]; 
-               break;
-         };
-         //printf("xx = %f\nyy = %f\n zz = %f\n",xx,yy,zz);
-         det_pos.SetXYZ(xx,yy,zz);
-      }else{
-
-         switch(CryNbr)	{
-            case -1:
-               break;
-            case 0:
-               xx = GeBluePosition[DetNbr][SegNbr][0];
-               yy = GeBluePosition[DetNbr][SegNbr][1];
-               zz = GeBluePosition[DetNbr][SegNbr][2];
-               break;
-            case 1:
-               xx = GeGreenPosition[DetNbr][SegNbr][0]; 
-               yy = GeGreenPosition[DetNbr][SegNbr][1]; 
-               zz = GeGreenPosition[DetNbr][SegNbr][2]; 
-               break;
-            case 2:
-               xx = GeRedPosition[DetNbr][SegNbr][0]; 
-               yy = GeRedPosition[DetNbr][SegNbr][1]; 
-               zz = GeRedPosition[DetNbr][SegNbr][2];  
-               break;
-            case 3:
-               xx = GeWhitePosition[DetNbr][SegNbr][0]; 
-               yy = GeWhitePosition[DetNbr][SegNbr][1]; 
-               zz = GeWhitePosition[DetNbr][SegNbr][2]; 
-               break;
-         };
-         //printf("xx = %f\nyy = %f\n zz = %f\n",xx,yy,zz);
-         zz -= fTargetOffset;
-         det_pos.SetXYZ(xx,yy,zz);
-      }
-
-      if(smear){
-         if(SegNbr==0){
-            // Not perfect as it takes the perpendicular core vector, not the clover vector, but good enough for my purposes
-            TVector3 a(-yy,xx,0);
-            TVector3 b=det_pos.Cross(a);
-            double x,y,r = sqrt(gRandom->Uniform(0,400));
-            gRandom->Circle(x,y,r);
-            det_pos+=a.Unit()*x+b.Unit()*y;
-         }
-      }
+     //if(smear){
+     //   if(SegNbr==0){
+     //      // Not perfect as it takes the perpendicular core vector, not the clover vector, but good enough for my purposes
+     //      TVector3 a(-yy,xx,0);
+     //      TVector3 b=det_pos.Cross(a);
+     //      double x,y,r = sqrt(gRandom->Uniform(0,400));
+     //      gRandom->Circle(x,y,r);
+     //      det_pos+=a.Unit()*x+b.Unit()*y;
+     //   }
+     //}
 
       return det_pos;
    }

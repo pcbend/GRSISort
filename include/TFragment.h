@@ -77,7 +77,6 @@ class TFragment : public TGRSIDetectorHit	{
 	
 	//////////////////// advanced getter functions ////////////////////
 
-	Short_t GetChannelNumber() const;
 	TPPG*  GetPPG();
 	double GetTZero() const;
 	long GetTimeStamp_ns() const;

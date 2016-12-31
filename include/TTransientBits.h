@@ -26,9 +26,9 @@ class TTransientBits {
     TTransientBits(const T& tmp) : fBits(tmp) { }
     ~TTransientBits() { } 
 
-    void SetBit(Int_t f, Bool_t flag) { flag ? SetBit(f) : ClearBit(f); } 
-    void SetBit(Int_t f) { fBits |= f; }
-    void ClearBit(Int_t f) { fBits &= ~f; } 
+    void SetBit(Int_t f, Bool_t flag) const { flag ? SetBit(f) : ClearBit(f); } 
+    void SetBit(Int_t f) const { fBits |= f; }
+    void ClearBit(Int_t f) const { fBits &= ~f; } 
     Bool_t TestBit(Int_t f) const { return fBits & f; }
     T      TestBits(Int_t f) const { return static_cast<T>(fBits & f); }
 
@@ -37,7 +37,7 @@ class TTransientBits {
     void Clear(){ fBits = 0; }
     void Print() const { std::cout << fBits << std::endl; }
 
-    T fBits;
+    mutable T fBits;
 
     //	ClassDefT(TTransientBits<T>,0);
 };
