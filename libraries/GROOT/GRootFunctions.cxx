@@ -67,6 +67,26 @@ Double_t GRootFunctions::Gaus(Double_t *dim, Double_t *par) {
   return height*(1.0-R/100.0)*TMath::Gaus(x,cent,sigma);
 }
 
+Double_t GRootFunctions::TripleGaus(Double_t *dim, Double_t *pars) {
+
+  // par[0] = height peak1
+  // par[1] = height peak2
+  // par[2] = height peak3
+  // par[3] = cent peak1
+  // par[4] = cent peak2
+  // par[5] = cent peak3
+  
+  // par[6] = sigma
+  double result;
+  result =  TMath::Gaus(pars[0],pars[3],pars[6]);
+  result += TMath::Gaus(pars[1],pars[4],pars[6]);
+  result += TMath::Gaus(pars[2],pars[5],pars[6]);
+  result += pars[7]*TMath::Exp(pars[8]+dim[0]) + pars[9]; 
+
+  return result;
+}
+
+
 Double_t GRootFunctions::SkewedGaus(Double_t *dim,Double_t *par) {
 
   // StepFunction(dim,par) + PolyBg

@@ -28,6 +28,8 @@ GPeak *PhotoPeakFit(TH1*,double,double,Option_t *opt="");
 GGaus *GausFit(TH1*,double,double,Option_t *opt="");
 TF1   *DoubleGausFit(TH1*,double,double,double,double,Option_t *opt="");
 
+TF1   *DoTripleGausFit(TH1*,double,double,double,double,double,double,Option_t *opt="");
+
 std::string MergeStrings(const std::vector<std::string>& strings, char split='\n');
 
 bool GetProjection(GH2D *hist,double low, double high, double bg_low=0,double bg_high=0);
