@@ -18,7 +18,7 @@
 #include "TMidasFile.h"
 #include "TMidasEvent.h"
 #include "TGRSIRunInfo.h"
-#include "GVersion.h"
+//#include "GVersion.h"
 
 /// \cond CLASSIMP
 ClassImp(TMidasFile)
@@ -232,7 +232,7 @@ bool TMidasFile::Open(const char *filename)
 
   Read(&fFirstEvent);
   TGRSIRunInfo::SetRunInfo(GetRunNumber(),GetSubRunNumber());
-  TGRSIRunInfo::SetGRSIVersion(GRSI_RELEASE);
+  //TGRSIRunInfo::SetGRSIVersion(GRSI_RELEASE);
 
   return true;
 }

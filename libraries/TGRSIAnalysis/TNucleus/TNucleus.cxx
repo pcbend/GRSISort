@@ -112,7 +112,7 @@ TNucleus::TNucleus(const char *name){
   SetMassExcess(mass/1000.0);
   SetMass();
   SetSymbol(symbol.c_str());
-  SetName();
+  SetNucName();
   //SetName(element.c_str());
   //SetSourceData();
   this->LoadTransitionFile();
@@ -127,7 +127,7 @@ TNucleus::TNucleus(int charge, int neutrons, double mass, const char* symbol){
   fSymbol = symbol;
   fMass = mass;
   //SetName(symbol);
-  SetName();
+  SetNucName();
   this->LoadTransitionFile();
   //SetSourceData();
 }
@@ -173,7 +173,7 @@ TNucleus::TNucleus(int charge, int neutrons, const char* MassFile){
   name.append(number);
   //SetName(name.c_str());
 
-  SetName();
+  SetNucName();
   this->LoadTransitionFile();
   //SetSourceData();
 }
@@ -182,7 +182,7 @@ TNucleus::TNucleus(int charge, int neutrons, const char* MassFile){
 //  fA = aval;
 //}
 
-void TNucleus::SetName() {
+void TNucleus::SetNucName() {
   std::string name = this->GetSymbol();
   name.append(std::to_string(this->GetA()));
   TNamed::SetName(name.c_str());
