@@ -235,17 +235,62 @@ GGaus *GausFit(TH1 *hist,double xlow, double xhigh,Option_t *opt) {
   return mypeak;
 }
 
-TF1 *DoTripleGausFit(TH1 *hist,double low, double high,double cent1,double cent2, double cent3, double sigma,Option_t *opt) {
+TF1 *DoTripleGausFit(TH1 *hist, double low, double high,double cent1,double cent2, double cent3, double sigma,Option_t *opt) {
 
   TF1 *gausfit = new TF1("triple_gaus_fit",GRootFunctions::TripleGaus,low,high,10);
   double max1 = hist->GetBinContent(hist->GetXaxis()->FindBin(cent1));
   double max2 = hist->GetBinContent(hist->GetXaxis()->FindBin(cent2));
   double max3 = hist->GetBinContent(hist->GetXaxis()->FindBin(cent3));
   gausfit->SetParameters(max1,max2,max3,cent1,cent2,cent3,sigma,0,0,0);
-  gausfit->FixParameter(3,cent1);
-  gausfit->FixParameter(4,cent2);
-  gausfit->FixParameter(5,cent3);
-  hist->Fit(gausfit,"R+");
+ 
+  TString title = hist->GetTitle();
+  title = title.Data() + title.First("0123456789");
+  double theta = title.Atof();
+
+  gausfit->SetParLimits(0,0.1*max1,5*max1);
+  gausfit->SetParLimits(1,0.1*max2,5*max2);
+  gausfit->SetParLimits(2,0.1*max3,5*max3);
+  
+  gausfit->SetParLimits(3,cent1-50.,cent1+50.); // position of first peak
+  gausfit->FixParameter(4,cent2); // offset from cent1
+  gausfit->FixParameter(5,cent3); // offset from cent1
+  //gausfit->SetParLimits(6,0.75*sigma,1.3*sigma);
+  gausfit->SetParLimits(6,150.0,250.0);
+  
+  if(theta<26)
+     gausfit->FixParameter(7,0.002);
+  else
+     gausfit->FixParameter(7,0.0002);
+  //  gausfit->FixParameter(8,0.0);
+//  gausfit->FixParameter(9,0.0);
+
+  hist->Fit(gausfit,Form("%sR+",opt));
+
+  TF1 *gaus1 = new TF1("gaus1","gaus",low,high);
+  gaus1->SetParameters(gausfit->GetParameter(0),gausfit->GetParameter(3),gausfit->GetParameter(6));
+  gaus1->SetLineColor(kBlue);
+  gaus1->SetLineWidth(1);
+  
+  TF1 *gaus2 = new TF1("gaus2","gaus",low,high);
+  gaus2->SetParameters(gausfit->GetParameter(1),gausfit->GetParameter(3)+cent2,gausfit->GetParameter(6));
+  gaus2->SetLineColor(kBlue+2);
+  gaus2->SetLineWidth(1);
+  
+  TF1 *gaus3 = new TF1("gaus3","gaus",low,high);
+  gaus3->SetParameters(gausfit->GetParameter(2),gausfit->GetParameter(3)+cent3,gausfit->GetParameter(6));
+  gaus3->SetLineColor(kBlue+4);
+  gaus3->SetLineWidth(1);
+  
+  TF1 *expbg = new TF1("expbg","TMath::Exp([0]*(x-[1]))+[2]",low,high);
+  expbg->SetParameters(gausfit->GetParameter(7),gausfit->GetParameter(8),gausfit->GetParameter(9));
+  expbg->SetLineColor(kGreen+2);
+  expbg->SetLineWidth(1);
+  
+  hist->GetListOfFunctions()->Add(gaus1);
+  hist->GetListOfFunctions()->Add(gaus2);
+  hist->GetListOfFunctions()->Add(gaus3);
+  hist->GetListOfFunctions()->Add(expbg);
+  
   return gausfit;
 
 }

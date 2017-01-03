@@ -77,11 +77,15 @@ Double_t GRootFunctions::TripleGaus(Double_t *dim, Double_t *pars) {
   // par[5] = cent peak3
   
   // par[6] = sigma
+  static double sqrt2pi = sqrt(2*TMath::Pi());
   double result;
-  result =  TMath::Gaus(pars[0],pars[3],pars[6]);
-  result += TMath::Gaus(pars[1],pars[4],pars[6]);
-  result += TMath::Gaus(pars[2],pars[5],pars[6]);
-  result += pars[7]*TMath::Exp(pars[8]+dim[0]) + pars[9]; 
+ // result =  pars[0]/sqrt2pi/pars[6]*TMath::Gaus(dim[0],pars[3],pars[6]);
+ // result += pars[1]/sqrt2pi/pars[6]*TMath::Gaus(dim[0],pars[4],pars[6]);
+ // result += pars[2]/sqrt2pi/pars[6]*TMath::Gaus(dim[0],pars[5],pars[6]);
+  result =  pars[0]*TMath::Gaus(dim[0],pars[3],pars[6]);
+  result += pars[1]*TMath::Gaus(dim[0],pars[4]+pars[3],pars[6]);
+  result += pars[2]*TMath::Gaus(dim[0],pars[5]+pars[3],pars[6]);
+  result += TMath::Exp(pars[7]*(dim[0]-pars[8])) + pars[9]; 
 
   return result;
 }
