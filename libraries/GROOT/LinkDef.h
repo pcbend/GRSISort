@@ -23,6 +23,7 @@
 #pragma link C++ function RemovePeaks;
 #pragma link C++ function PhotoPeakFit;
 #pragma link C++ function GausFit;
+#pragma link C++ function DoTripleGausFit;
 
 #pragma link C++ function MergeStrings;
 

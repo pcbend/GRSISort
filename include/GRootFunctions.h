@@ -19,6 +19,7 @@ namespace GRootFunctions {
   Double_t Efficiency(Double_t *dim, Double_t *par);
 
   Double_t GausExpo(Double_t *dim,Double_t *par);
+  Double_t TripleGaus(Double_t *dim,Double_t *par);
   
   Double_t LanGaus(Double_t *dim,Double_t *par);
   Double_t LanGausHighRes(Double_t *dim,Double_t *par);

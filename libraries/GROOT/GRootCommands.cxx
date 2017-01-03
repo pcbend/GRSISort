@@ -33,6 +33,7 @@
 #include <TGRSIOptions.h>
 //#include <TGRUTInt.h>
 #include <GNotifier.h>
+#include <GRootFunctions.h>
 
 TChain* gFragment = NULL;
 TChain* gAnalysis = NULL;
@@ -233,6 +234,22 @@ GGaus *GausFit(TH1 *hist,double xlow, double xhigh,Option_t *opt) {
 
   return mypeak;
 }
+
+TF1 *DoTripleGausFit(TH1 *hist,double low, double high,double cent1,double cent2, double cent3, double sigma,Option_t *opt) {
+
+  TF1 *gausfit = new TF1("triple_gaus_fit",GRootFunctions::TripleGaus,low,high,10);
+  double max1 = hist->GetBinContent(hist->GetXaxis()->FindBin(cent1));
+  double max2 = hist->GetBinContent(hist->GetXaxis()->FindBin(cent2));
+  double max3 = hist->GetBinContent(hist->GetXaxis()->FindBin(cent3));
+  gausfit->SetParameters(max1,max2,max3,cent1,cent2,cent3,sigma,0,0,0);
+  gausfit->FixParameter(3,cent1);
+  gausfit->FixParameter(4,cent2);
+  gausfit->FixParameter(5,cent3);
+  hist->Fit(gausfit,"R+");
+  return gausfit;
+
+}
+
 
 
 TF1 *DoubleGausFit(TH1 *hist,double cent1,double cent2,double xlow, double xhigh,Option_t *opt) {
@@ -514,3 +531,8 @@ TH2 *AddOffset(TH2 *mat,double offset,EAxis axis) {
    }
   return toreturn;
 }
+
+
+
+
+
